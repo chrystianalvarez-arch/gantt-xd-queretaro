@@ -414,8 +414,8 @@ function showSaving(){document.getElementById('saving-msg').style.display='inlin
 function hideSaving(){document.getElementById('saving-msg').style.display='none';}
 
 // ── Load data ──────────────────────────────
-async function loadData(){
-  document.getElementById('loading-overlay').style.display='flex';
+async function loadData(silent=false){
+  if(!silent) document.getElementById('loading-overlay').style.display='flex';
   try{
     const d=await apiFetch('getData');
     if(d.milestones && d.milestones.length){
@@ -428,11 +428,11 @@ async function loadData(){
     if(local){milestones=JSON.parse(local);setSyncStatus('error','Modo offline');}
     else{milestones=[];setSyncStatus('error','Sin datos');}
   }
-  document.getElementById('loading-overlay').style.display='none';
+  if(!silent) document.getElementById('loading-overlay').style.display='none';
   renderAll();
 }
 
-async function forceRefresh(){await loadData();}
+async function forceRefresh(){await loadData(false);}
 
 async function persistChange(action, payload){
   setSyncStatus('syncing');showSaving();
@@ -779,7 +779,7 @@ document.getElementById('ftr-ts').textContent=`v4-collab · ${fd(TODAY)}`;
 if(API_URL){document.getElementById('api-url-input').value=API_URL;}
 loadData();
 // Auto-refresh cada 2 minutos
-setInterval(()=>{ if(!document.hidden) loadData(); }, 120000);
+setInterval(()=>{ if(!document.hidden) loadData(true); }, 120000);
 </script>
 </body>
 </html>
