@@ -336,6 +336,9 @@ const TYPE_COLORS = {ops:'#a0a098',inst:'#6b6b63',comm:'#1a7a4a',demar:'#4a90d9'
 // ── Helpers ──────────────────────────────
 function pd(s){if(!s)return null;const[d,m,y]=s.split('/').map(Number);return new Date(y,m-1,d);}
 function fd(d){if(!d)return '';return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+function toISO(s){if(!s)return '';if(s.includes('-'))return s;const[d,m,y]=s.split('/');return`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;}
+function fromISO(s){if(!s)return '';if(s.includes('/')){return s;}const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;}
+function ownerDisplay(key){if(!key)return '—';if(OWNERS[key])return OWNERS[key];if(key.includes('@'))return key.split('@')[0].replace(/\./g,' ').replace(/\w/g,c=>c.toUpperCase());return key;}
 function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
 function inRange(day,s,e){if(!s||!e)return false;return day>=pd(s)&&day<=pd(e);}
 function daysUntil(endStr){if(!endStr)return null;return Math.ceil((pd(endStr)-TODAY)/(864e5));}
@@ -529,7 +532,7 @@ function renderDashboard(){
   let po='';
   Object.entries(os).sort((a,b)=>b[1].total-a[1].total).forEach(([k,v])=>{
     const p=v.total?Math.round(v.done/v.total*100):0;
-    po+=`<div class="prog-row"><div class="prog-label">${OWNERS[k]||k} <span style="font-size:9px;color:#aaa;">(${v.total})</span></div><div class="prog-bar-wrap"><div class="prog-bar ${p===100?'green':''}" style="width:${p}%;"></div></div><div class="prog-pct">${p}%</div></div>`;
+    po+=`<div class="prog-row"><div class="prog-label">${ownerDisplay(k)} <span style="font-size:9px;color:#aaa;">(${v.total})</span></div><div class="prog-bar-wrap"><div class="prog-bar ${p===100?'green':''}" style="width:${p}%;"></div></div><div class="prog-pct">${p}%</div></div>`;
   });
   document.getElementById('prog-resp').innerHTML=po||'<p style="font-size:12px;color:#aaa;">Sin datos.</p>';
   renderAlertList(document.getElementById('dash-alerts'),alerts.slice(0,5));
@@ -543,7 +546,7 @@ function renderAlertList(el,alerts){
       <div class="alert-icon">${a.type==='crit'?'🔴':'🟡'}</div>
       <div class="alert-body">
         <div class="alert-title">${a.sub.label}<span class="alert-badge ${a.type}">${a.msg}</span></div>
-        <div class="alert-meta">📌 ${a.sub.msLabel.substring(0,40)} · 👤 ${OWNERS[a.sub.owner]||a.sub.owner} · Límite: <strong>${a.sub.end}</strong></div>
+        <div class="alert-meta">📌 ${a.sub.msLabel.substring(0,40)} · 👤 ${ownerDisplay(a.sub.owner)} · Límite: <strong>${a.sub.end}</strong></div>
       </div>
       <button class="btn outline" style="font-size:10px;padding:3px 9px;flex-shrink:0;" onclick="openEditById('${a.sub.msId}','${a.sub.id}')">Editar</button>
     </div>`).join('');
@@ -575,7 +578,7 @@ function renderGantt(){
   });
   h+='</tr></thead><tbody>';
   milestones.forEach(ms=>{
-    const p=msPct(ms),owStr=ms.owners.map(o=>OWNERS[o]||o).join(', ');
+    const p=msPct(ms),owStr=ms.owners.map(o=>ownerDisplay(o)).join(', ');
     h+=`<tr class="g-row ms-row" id="row-${ms.id}">`;
     h+=`<td class="g-cell-info"><div class="g-info-inner" onclick="toggleMs('${ms.id}')"><span class="chevron ${ms.expanded?'open':''}" id="chev-${ms.id}">▶</span><div style="flex:1;"><div class="ms-lbl">${ms.label}<span class="pct-chip">${p}%</span></div><span class="owner-lbl">${owStr}</span></div></div><button class="add-sub-btn" onclick="openAdd('${ms.id}')">+ Sub-actividad</button></td>`;
     DAYS.forEach(d=>{
@@ -597,7 +600,7 @@ function renderGantt(){
       const doneT=sub.done?`<span class="done-tag">✓</span>`:'';
       const dateL=(sub.start&&sub.end)?` · ${sub.start}→${sub.end}`:(sub.end?` · ⚑${sub.end}`:' · Sin fecha');
       h+=`<tr class="g-row sub-row ${ms.expanded?'':'hidden'}" id="subrow-${sub.id}" style="${row_sty}">`;
-      h+=`<td class="g-cell-info" style="${row_sty}"><div class="g-info-inner" style="cursor:default;"><div style="flex:1;"><div class="sub-lbl">${TYPE_ICONS[sub.type]||''} ${sub.label}${srcT}${genieT}${doneT}</div><span class="owner-lbl">${OWNERS[sub.owner]||sub.owner}${dateL}</span></div><div style="display:flex;gap:2px;flex-shrink:0;"><button class="add-sub-btn" style="padding:2px 4px;" onclick="openEditById('${ms.id}','${sub.id}')">✎</button>${!sub.done?`<button class="add-sub-btn" style="padding:2px 4px;background:#d4edda;border-color:#1a7a4a;color:#1a7a4a;" onclick="doMarkDone('${ms.id}','${sub.id}',true)">✓</button>`:`<button class="add-sub-btn" style="padding:2px 4px;background:#f0f0f0;color:#888;" onclick="doMarkDone('${ms.id}','${sub.id}',false)">↩</button>`}</div></div></td>`;
+      h+=`<td class="g-cell-info" style="${row_sty}"><div class="g-info-inner" style="cursor:default;"><div style="flex:1;"><div class="sub-lbl">${TYPE_ICONS[sub.type]||''} ${sub.label}${srcT}${genieT}${doneT}</div><span class="owner-lbl">${ownerDisplay(sub.owner)}${dateL}</span></div><div style="display:flex;gap:2px;flex-shrink:0;"><button class="add-sub-btn" style="padding:2px 4px;" onclick="openEditById('${ms.id}','${sub.id}')">✎</button>${!sub.done?`<button class="add-sub-btn" style="padding:2px 4px;background:#d4edda;border-color:#1a7a4a;color:#1a7a4a;" onclick="doMarkDone('${ms.id}','${sub.id}',true)">✓</button>`:`<button class="add-sub-btn" style="padding:2px 4px;background:#f0f0f0;color:#888;" onclick="doMarkDone('${ms.id}','${sub.id}',false)">↩</button>`}</div></div></td>`;
       const bc=barCls(sub);
       DAYS.forEach(d=>{
         let cls='dc';
@@ -623,12 +626,12 @@ function renderGantt(){
 function renderResponsablesTab(){
   const os=ownerStats();
   let fb='<label style="font-size:11px;font-weight:700;color:#888;">FILTRAR:</label><button class="resp-btn '+(activeOwnerFilter==='ALL'?'active':'')+'" onclick="setOwnerFilter(\'ALL\')">Todos</button>';
-  Object.keys(os).forEach(k=>{fb+=`<button class="resp-btn ${activeOwnerFilter===k?'active':''}" onclick="setOwnerFilter('${k}')">${OWNERS[k]||k}</button>`;});
+  Object.keys(os).forEach(k=>{fb+=`<button class="resp-btn ${activeOwnerFilter===k?'active':''}" onclick="setOwnerFilter('${k}')">${ownerDisplay(k)}</button>`;});
   document.getElementById('resp-filter').innerHTML=fb;
   const subs=allSubs().filter(s=>activeOwnerFilter==='ALL'||s.owner===activeOwnerFilter);
   const du2tag=s=>{if(s.done)return'<span class="tag done">✓ Listo</span>';const du=daysUntil(s.end);if(du===null)return'<span class="tag pend">Sin fecha</span>';if(du<0)return'<span class="tag late">⚠ Vencida</span>';if(du<=ALERT_DAYS)return`<span class="tag soon">⏰ ${du}d</span>`;return'<span class="tag pend">Pendiente</span>';};
   document.getElementById('owner-tbody').innerHTML=subs.map(s=>`<tr>
-    <td><strong>${OWNERS[s.owner]||s.owner}</strong></td>
+    <td><strong>${ownerDisplay(s.owner)}</strong></td>
     <td style="max-width:200px;font-size:10px;">${TYPE_ICONS[s.type]||''} ${s.label}</td>
     <td style="font-size:10px;color:#888;">${s.msLabel.substring(0,28)}…</td>
     <td style="font-size:10px;">${s.start||'—'}</td>
@@ -686,8 +689,8 @@ function openAdd(msId){
         <input type="hidden" id="m-own" value=""/>
         <label>¿Requiere Genie?</label>
         <select id="m-genie"><option value="no">No</option><option value="yes">Sí ⚠</option></select>
-        <label>Fecha inicio (DD/MM/AAAA)</label><input id="m-s" type="text" placeholder="08/06/2026"/>
-        <label>Fecha fin / deadline (DD/MM/AAAA)</label><input id="m-e" type="text" placeholder="15/06/2026"/>
+        <label>Fecha inicio</label><input id="m-s" type="date" style="color:#464646;"/>
+        <label>Fecha fin / deadline</label><input id="m-e" type="date" style="color:#464646;"/>
         <label>Notas</label><textarea id="m-notes" placeholder="Observaciones, dependencias..."></textarea>
         <div class="btn-row">
           <button class="btn outline" onclick="closeModal()">Cancelar</button>
@@ -718,8 +721,8 @@ function openEditById(msId,subId){
         <input type="hidden" id="m-own" value="${sub.owner||''}"/>
         <label>¿Requiere Genie?</label>
         <select id="m-genie"><option value="no" ${!sub.genie?'selected':''}>No</option><option value="yes" ${sub.genie?'selected':''}>Sí ⚠</option></select>
-        <label>Fecha inicio (DD/MM/AAAA)</label><input id="m-s" type="text" value="${sub.start||''}" placeholder="08/06/2026"/>
-        <label>Fecha fin / deadline (DD/MM/AAAA)</label><input id="m-e" type="text" value="${sub.end||''}" placeholder="15/06/2026"/>
+        <label>Fecha inicio</label><input id="m-s" type="date" value="${sub.start?toISO(sub.start):''}" style="color:#464646;"/>
+        <label>Fecha fin / deadline</label><input id="m-e" type="date" value="${sub.end?toISO(sub.end):''}" style="color:#464646;"/>
         <label>Estado</label>
         <select id="m-done"><option value="no" ${!sub.done?'selected':''}>⏳ Pendiente</option><option value="yes" ${sub.done?'selected':''}>✅ Completado</option></select>
         <label>Notas</label><textarea id="m-notes">${sub.notes||''}</textarea>
@@ -738,8 +741,8 @@ async function saveNewSub(msId){
   const newSub={
     id:`${msId}-${Date.now()}`,label:lbl,
     owner:document.getElementById('m-own').value,
-    start:document.getElementById('m-s').value.trim()||null,
-    end:document.getElementById('m-e').value.trim()||null,
+    start:fromISO(document.getElementById('m-s').value)||null,
+    end:fromISO(document.getElementById('m-e').value)||null,
     type:document.getElementById('m-type').value,
     genie:document.getElementById('m-genie').value==='yes',
     notes:document.getElementById('m-notes').value.trim(),
@@ -756,8 +759,8 @@ async function doUpdateSub(msId,subId){
   const fields={
     label:document.getElementById('m-lbl').value.trim(),
     owner:document.getElementById('m-own').value,
-    start:document.getElementById('m-s').value.trim()||null,
-    end:document.getElementById('m-e').value.trim()||null,
+    start:fromISO(document.getElementById('m-s').value)||null,
+    end:fromISO(document.getElementById('m-e').value)||null,
     type:document.getElementById('m-type').value,
     genie:document.getElementById('m-genie').value==='yes',
     done:document.getElementById('m-done').value==='yes',
@@ -831,9 +834,10 @@ function dirSearch(q, ctx) {
       if (!url) { renderStaticOwners(ctx, q); return; }
       const data = await jsonpFetch(`${url}?action=searchDir&q=${encodeURIComponent(q)}&t=${Date.now()}`);
       if (data.results && data.results.length > 0) {
+        // Register new users in OWNERS
+        data.results.forEach(r => { if(r.key && r.name) OWNERS[r.key] = r.name; });
         renderDirResults(data.results, ctx);
       } else {
-        // Fallback to static filtered list
         renderStaticOwners(ctx, q);
       }
     } catch(e) {
@@ -857,29 +861,44 @@ function renderDirResults(results, ctx) {
 function renderStaticOwners(ctx, q) {
   const dd = document.getElementById('dir-dd-'+ctx);
   if (!dd) return;
+  const ql = q.toLowerCase();
   const filtered = Object.entries(OWNERS).filter(([k,v]) =>
-    v.toLowerCase().includes(q.toLowerCase()) || k.toLowerCase().includes(q.toLowerCase())
+    v.toLowerCase().includes(ql) || k.toLowerCase().includes(ql)
   );
-  if (filtered.length === 0) { dd.style.display='none'; return; }
   dd.style.display = 'block';
-  dd.innerHTML = filtered.map(([k,v]) =>
+  let html = filtered.map(([k,v]) =>
     `<div class="dir-item" onclick="selectOwner('${ctx}','${k}','${v}','')">
       <span class="dir-item-name">${v}</span>
       <span class="dir-item-meta">Lista local</span>
     </div>`
   ).join('');
+  // If looks like email or no match found, offer to use as-is
+  if (q.includes('@') || (filtered.length === 0 && q.length >= 2)) {
+    const key = q.includes('@') ? q.split('@')[0].replace(/[^a-zA-Z0-9]/g,'_') : q.replace(/\s+/g,'_');
+    const name = q.includes('@')
+      ? q.split('@')[0].split('.').map(p=>p.charAt(0).toUpperCase()+p.slice(1)).join(' ')
+      : q;
+    html += `<div class="dir-item" style="border-top:2px solid #FFDB00;" onclick="selectOwner('${ctx}','${key}','${name}','${q}')">
+      <span class="dir-item-name">➕ Usar: <strong>${name}</strong></span>
+      <span class="dir-item-meta">${q.includes('@')?q:'Agregar como nuevo responsable'}</span>
+    </div>`;
+  }
+  if (!html) { dd.style.display='none'; return; }
+  dd.innerHTML = html;
 }
 
 function selectOwner(ctx, key, name, email) {
+  // Use clean key — prefer short key, fallback to email prefix
+  const cleanKey = key && !key.includes('@') ? key : (email ? email.split('@')[0].replace(/[^a-zA-Z0-9]/g,'_') : key);
   // Register in OWNERS if new
-  if (!OWNERS[key]) OWNERS[key] = name;
+  if (!OWNERS[cleanKey]) OWNERS[cleanKey] = name || ownerDisplay(email);
   // Set hidden input
   const inp = document.getElementById('m-own');
-  if (inp) inp.value = key;
+  if (inp) inp.value = cleanKey;
   // Show chip
   const chips = document.getElementById('owner-chips-'+ctx);
   if (chips) {
-    chips.innerHTML = `<span class="dir-chip">👤 ${name}<button onclick="clearOwner('${ctx}')" title="Quitar">×</button></span>`;
+    chips.innerHTML = `<span class="dir-chip">👤 ${name||ownerDisplay(email)}<button onclick="clearOwner('${ctx}')" title="Quitar">×</button></span>`;
   }
   // Clear search input and hide dropdown
   const si = document.getElementById('dir-search-'+ctx);
