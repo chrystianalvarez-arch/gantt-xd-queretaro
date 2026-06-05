@@ -117,6 +117,8 @@ body{font-family:'Nunito',Arial,sans-serif;background:#f5f4ef;color:#464646;min-
 .dc.bcom{background:#1a7a4a!important;}
 .dc.bdem{background:#4a90d9!important;}
 .dc.bsen{background:#7b5ea7!important;}
+.dc.bdesign{background:#d4770a!important;}
+.dc.bplanta{background:#1a5fa0!important;}
 .dc.bemp{background:repeating-linear-gradient(45deg,#f0f0f0,#f0f0f0 3px,#e4e4e0 3px,#e4e4e0 6px)!important;}
 .dc.bdone{background:#c8e6c9!important;}
 .dl-m{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
@@ -152,6 +154,19 @@ body{font-family:'Nunito',Arial,sans-serif;background:#f5f4ef;color:#464646;min-
 .modal .btn-row{display:flex;gap:7px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap;}
 .btn-danger{background:#ffe0e0;border:none;border-radius:6px;padding:6px 12px;font-size:11px;color:#c00;cursor:pointer;font-weight:700;}
 .saving-msg{font-size:11px;color:#1a7a4a;display:none;margin-left:8px;}
+.dir-wrap{position:relative;}
+.dir-input-row{display:flex;gap:6px;align-items:center;}
+.dir-input-row input{flex:1;border:1px solid #D3D2C8;border-radius:5px;padding:6px 9px;font-size:12px;color:#464646;background:#fafafa;font-family:inherit;}
+.dir-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #D3D2C8;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:500;max-height:220px;overflow-y:auto;margin-top:2px;}
+.dir-item{padding:9px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;flex-direction:column;gap:2px;}
+.dir-item:last-child{border-bottom:none;}
+.dir-item:hover{background:#fffbdd;}
+.dir-item-name{font-size:12px;font-weight:700;color:#464646;}
+.dir-item-meta{font-size:10px;color:#aaa;}
+.dir-searching{padding:10px 12px;font-size:11px;color:#888;text-align:center;}
+.dir-chip{display:inline-flex;align-items:center;gap:4px;background:#464646;color:#FFDB00;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;margin:2px;}
+.dir-chip button{background:none;border:none;color:#FFDB00;cursor:pointer;font-size:13px;line-height:1;padding:0 0 0 4px;}
+.owners-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;min-height:24px;}
 
 /* ── FOOTER ── */
 .footer{background:#464646;color:#FFDB00;font-size:10px;padding:8px 24px;display:flex;justify-content:space-between;margin-top:24px;gap:8px;flex-wrap:wrap;}
@@ -210,6 +225,8 @@ body{font-family:'Nunito',Arial,sans-serif;background:#f5f4ef;color:#464646;min-
     <div class="leg-i"><div class="leg-dot" style="background:#4a90d9;"></div>Demarcación</div>
     <div class="leg-i"><div class="leg-dot" style="background:#7b5ea7;"></div>Señalética</div>
     <div class="leg-i"><div class="leg-dot" style="background:#c8e6c9;border:1px solid #1a7a4a;"></div>Completado</div>
+    <div class="leg-i"><div class="leg-dot" style="background:#d4770a;"></div>Diseño</div>
+    <div class="leg-i"><div class="leg-dot" style="background:#1a5fa0;"></div>Ing. Planta</div>
     <div class="leg-i"><div class="leg-dot" style="background:#ffe0e0;border:2px solid #c00;"></div>Go Live</div>
     <div class="leg-i"><div class="leg-dot" style="background:#ffe8cc;border:2px solid #f60;"></div>Pre GL</div>
   </div>
@@ -308,11 +325,13 @@ const OWNERS = {
   Emanuel:'Emanuel Palacios',Mauro:'Mauro F. Arroyo',Ulises:'Ulises Miranda',
   Kimberly:'Kimberly Enriquez',Gustavo:'Gustavo I. Alonso',Rodrigo:'Rodrigo A. Arias',
   Chrys:'Chrystian C. Duque',Itzel:'Itzel Gorospe',Rafael:'Rafael Buitron',
-  Zaide:'Maria Zaide Solis',Luis:'Luis Daniel Rios',Isra:'Isra (D&C)'
+  Zaide:'Maria Zaide Solis',Luis:'Luis Daniel Rios',Isra:'Isra (D&C)',
+  Raymundo:'Raymundo Martinez',Ivan:'Ivan Jimenez',Alejandro:'Alejandro Cuartas',
+  Edgar:'Edgar Pedraza',Jamile:'Jamile Olvera',Omar:'Omar Alkai',Pamela:'Pamela Guerrero'
 };
-const TYPE_ICONS  = {ops:'⚙️',inst:'🔧',comm:'🔬',demar:'📐',senal:'🪧'};
-const TYPE_LABELS = {ops:'Operaciones',inst:'Instalación',comm:'Commissioning',demar:'Demarcación',senal:'Señalética'};
-const TYPE_COLORS = {ops:'#a0a098',inst:'#6b6b63',comm:'#1a7a4a',demar:'#4a90d9',senal:'#7b5ea7'};
+const TYPE_ICONS  = {ops:'⚙️',inst:'🔧',comm:'🔬',demar:'📐',senal:'🪧',design:'🎨',planta:'🏗️'};
+const TYPE_LABELS = {ops:'Operaciones',inst:'Instalación',comm:'Commissioning',demar:'Demarcación',senal:'Señalética',design:'Diseño',planta:'Ing. de Planta'};
+const TYPE_COLORS = {ops:'#a0a098',inst:'#6b6b63',comm:'#1a7a4a',demar:'#4a90d9',senal:'#7b5ea7',design:'#d4770a',planta:'#1a5fa0'};
 
 // ── Helpers ──────────────────────────────
 function pd(s){if(!s)return null;const[d,m,y]=s.split('/').map(Number);return new Date(y,m-1,d);}
@@ -536,7 +555,7 @@ function renderAlertList(el,alerts){
 function barCls(sub){
   if(sub.done)return'bdone';
   if(!sub.start||!sub.end)return'bemp';
-  return{inst:'bsub',comm:'bcom',demar:'bdem',senal:'bsen'}[sub.type]||'bsub';
+  return{inst:'bsub',comm:'bcom',demar:'bdem',senal:'bsen',design:'bdesign',planta:'bplanta'}[sub.type]||'bsub';
 }
 function renderGantt(){
   const weeks=[];let wk=[];
@@ -654,9 +673,17 @@ function openAdd(msId){
         <h3>+ Nueva sub-actividad<br><small style="font-weight:400;font-size:10px;color:#888;">${ms.label.substring(0,55)}</small></h3>
         <label>Descripción *</label><input id="m-lbl" type="text" placeholder="Ej: Validar layout con operaciones"/>
         <label>Tipo</label>
-        <select id="m-type"><option value="ops">⚙️ Operaciones</option><option value="inst">🔧 Instalación</option><option value="comm">🔬 Commissioning</option><option value="demar">📐 Demarcación</option><option value="senal">🪧 Señalética</option></select>
+        <select id="m-type"><option value="ops">⚙️ Operaciones</option><option value="inst">🔧 Instalación</option><option value="comm">🔬 Commissioning</option><option value="demar">📐 Demarcación</option><option value="senal">🪧 Señalética</option><option value="design">🎨 Diseño</option><option value="planta">🏗️ Ing. de Planta</option></select>
         <label>Responsable *</label>
-        <select id="m-own">${Object.entries(OWNERS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+        <div class="dir-wrap" id="dir-wrap-add">
+          <div class="owners-chips" id="owner-chips-add"></div>
+          <div class="dir-input-row">
+            <input type="text" id="dir-search-add" placeholder="Buscar por nombre en directorio Meli..." autocomplete="off"
+              oninput="dirSearch(this.value,'add')" onfocus="dirSearch(this.value,'add')"/>
+          </div>
+          <div class="dir-dropdown" id="dir-dd-add" style="display:none;"></div>
+        </div>
+        <input type="hidden" id="m-own" value=""/>
         <label>¿Requiere Genie?</label>
         <select id="m-genie"><option value="no">No</option><option value="yes">Sí ⚠</option></select>
         <label>Fecha inicio (DD/MM/AAAA)</label><input id="m-s" type="text" placeholder="08/06/2026"/>
@@ -678,9 +705,17 @@ function openEditById(msId,subId){
         <h3>✎ Editar sub-actividad</h3>
         <label>Descripción</label><input id="m-lbl" type="text" value="${sub.label.replace(/"/g,'&quot;').replace(/</g,'&lt;')}"/>
         <label>Tipo</label>
-        <select id="m-type"><option value="ops" ${sub.type==='ops'?'selected':''}>⚙️ Operaciones</option><option value="inst" ${sub.type==='inst'?'selected':''}>🔧 Instalación</option><option value="comm" ${sub.type==='comm'?'selected':''}>🔬 Commissioning</option><option value="demar" ${sub.type==='demar'?'selected':''}>📐 Demarcación</option><option value="senal" ${sub.type==='senal'?'selected':''}>🪧 Señalética</option></select>
+        <select id="m-type"><option value="ops" ${sub.type==='ops'?'selected':''}>⚙️ Operaciones</option><option value="inst" ${sub.type==='inst'?'selected':''}>🔧 Instalación</option><option value="comm" ${sub.type==='comm'?'selected':''}>🔬 Commissioning</option><option value="demar" ${sub.type==='demar'?'selected':''}>📐 Demarcación</option><option value="senal" ${sub.type==='senal'?'selected':''}>🪧 Señalética</option><option value="design" ${sub.type==='design'?'selected':''}>🎨 Diseño</option><option value="planta" ${sub.type==='planta'?'selected':''}>🏗️ Ing. de Planta</option></select>
         <label>Responsable</label>
-        <select id="m-own">${Object.entries(OWNERS).map(([k,v])=>`<option value="${k}" ${k===sub.owner?'selected':''}>${v}</option>`).join('')}</select>
+        <div class="dir-wrap" id="dir-wrap-edit">
+          <div class="owners-chips" id="owner-chips-edit"></div>
+          <div class="dir-input-row">
+            <input type="text" id="dir-search-edit" placeholder="Buscar por nombre en directorio Meli..." autocomplete="off"
+              oninput="dirSearch(this.value,'edit')" onfocus="dirSearch(this.value,'edit')"/>
+          </div>
+          <div class="dir-dropdown" id="dir-dd-edit" style="display:none;"></div>
+        </div>
+        <input type="hidden" id="m-own" value="${sub.owner||''}"/>
         <label>¿Requiere Genie?</label>
         <select id="m-genie"><option value="no" ${!sub.genie?'selected':''}>No</option><option value="yes" ${sub.genie?'selected':''}>Sí ⚠</option></select>
         <label>Fecha inicio (DD/MM/AAAA)</label><input id="m-s" type="text" value="${sub.start||''}" placeholder="08/06/2026"/>
@@ -694,6 +729,7 @@ function openEditById(msId,subId){
           <button class="btn" onclick="doUpdateSub('${msId}','${subId}')">💾 Actualizar</button>
         </div>
       </div></div>`;
+  setTimeout(()=>initOwnerChip('edit', sub.owner||''), 50);
 }
 
 async function saveNewSub(msId){
@@ -771,6 +807,113 @@ function renderAll(){
   const active=tabs.find(t=>document.getElementById(`tab-${t}`)?.classList.contains('active'))||'dashboard';
   switchTab(active);
 }
+
+// ══════════════════════════════════════════
+//  DIRECTORY SEARCH
+// ══════════════════════════════════════════
+let dirSearchTimer = null;
+let selectedOwners = {}; // ctx -> {key, name, email}
+
+function dirSearch(q, ctx) {
+  const dd = document.getElementById('dir-dd-'+ctx);
+  if (!dd) return;
+  clearTimeout(dirSearchTimer);
+  if (q.length < 2) {
+    // Show static owners as fallback
+    renderStaticOwners(ctx, q);
+    return;
+  }
+  dd.style.display = 'block';
+  dd.innerHTML = '<div class="dir-searching">🔍 Buscando en directorio Meli...</div>';
+  dirSearchTimer = setTimeout(async () => {
+    try {
+      const url = getApiUrl();
+      if (!url) { renderStaticOwners(ctx, q); return; }
+      const data = await jsonpFetch(`${url}?action=searchDir&q=${encodeURIComponent(q)}&t=${Date.now()}`);
+      if (data.results && data.results.length > 0) {
+        renderDirResults(data.results, ctx);
+      } else {
+        // Fallback to static filtered list
+        renderStaticOwners(ctx, q);
+      }
+    } catch(e) {
+      renderStaticOwners(ctx, q);
+    }
+  }, 350);
+}
+
+function renderDirResults(results, ctx) {
+  const dd = document.getElementById('dir-dd-'+ctx);
+  if (!dd) return;
+  dd.style.display = 'block';
+  dd.innerHTML = results.map(r =>
+    `<div class="dir-item" onclick="selectOwner('${ctx}','${r.key}','${r.name.replace(/'/g,"\'")}','${r.email}')">
+      <span class="dir-item-name">👤 ${r.name}</span>
+      <span class="dir-item-meta">${r.email}${r.team?' · '+r.team:''}</span>
+    </div>`
+  ).join('');
+}
+
+function renderStaticOwners(ctx, q) {
+  const dd = document.getElementById('dir-dd-'+ctx);
+  if (!dd) return;
+  const filtered = Object.entries(OWNERS).filter(([k,v]) =>
+    v.toLowerCase().includes(q.toLowerCase()) || k.toLowerCase().includes(q.toLowerCase())
+  );
+  if (filtered.length === 0) { dd.style.display='none'; return; }
+  dd.style.display = 'block';
+  dd.innerHTML = filtered.map(([k,v]) =>
+    `<div class="dir-item" onclick="selectOwner('${ctx}','${k}','${v}','')">
+      <span class="dir-item-name">${v}</span>
+      <span class="dir-item-meta">Lista local</span>
+    </div>`
+  ).join('');
+}
+
+function selectOwner(ctx, key, name, email) {
+  // Register in OWNERS if new
+  if (!OWNERS[key]) OWNERS[key] = name;
+  // Set hidden input
+  const inp = document.getElementById('m-own');
+  if (inp) inp.value = key;
+  // Show chip
+  const chips = document.getElementById('owner-chips-'+ctx);
+  if (chips) {
+    chips.innerHTML = `<span class="dir-chip">👤 ${name}<button onclick="clearOwner('${ctx}')" title="Quitar">×</button></span>`;
+  }
+  // Clear search input and hide dropdown
+  const si = document.getElementById('dir-search-'+ctx);
+  if (si) si.value = '';
+  const dd = document.getElementById('dir-dd-'+ctx);
+  if (dd) dd.style.display = 'none';
+}
+
+function clearOwner(ctx) {
+  const inp = document.getElementById('m-own');
+  if (inp) inp.value = '';
+  const chips = document.getElementById('owner-chips-'+ctx);
+  if (chips) chips.innerHTML = '';
+}
+
+function initOwnerChip(ctx, ownerKey) {
+  if (!ownerKey) return;
+  const name = OWNERS[ownerKey] || ownerKey;
+  const chips = document.getElementById('owner-chips-'+ctx);
+  if (chips) {
+    chips.innerHTML = `<span class="dir-chip">👤 ${name}<button onclick="clearOwner('${ctx}')" title="Quitar">×</button></span>`;
+  }
+  const inp = document.getElementById('m-own');
+  if (inp) inp.value = ownerKey;
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  ['add','edit'].forEach(ctx => {
+    const wrap = document.getElementById('dir-wrap-'+ctx);
+    const dd = document.getElementById('dir-dd-'+ctx);
+    if (dd && wrap && !wrap.contains(e.target)) dd.style.display = 'none';
+  });
+});
 
 // ══════════════════════════════════════════
 //  INIT
