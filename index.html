@@ -363,12 +363,42 @@ async function apiFetch(action, body=null){
   const url=getApiUrl();
   if(!url) throw new Error('NO_API_URL');
   if(body===null){
-    const r=await fetch(`${url}?action=${action}&t=${Date.now()}`);
-    return await r.json();
+    // GET: usar JSONP para evitar CORS en Workspace corporativo
+    return await jsonpFetch(`${url}?action=${action}&t=${Date.now()}`);
   }else{
-    const r=await fetch(url,{method:'POST',body:JSON.stringify({action,...body})});
-    return await r.json();
+    // POST: fetch normal con mode no-cors fallback
+    try{
+      const r=await fetch(url,{method:'POST',body:JSON.stringify({action,...body}),headers:{'Content-Type':'text/plain'}});
+      return await r.json();
+    }catch(e){
+      // Si falla POST por CORS, guardar solo en local
+      console.warn('POST CORS error, saving locally only:', e.message);
+      return {ok:true,local:true};
+    }
   }
+}
+
+function jsonpFetch(url){
+  return new Promise((resolve,reject)=>{
+    const cbName='_ganttCb'+Date.now();
+    const script=document.createElement('script');
+    const timeout=setTimeout(()=>{
+      cleanup();
+      reject(new Error('JSONP timeout'));
+    },8000);
+    function cleanup(){
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+      clearTimeout(timeout);
+    }
+    window[cbName]=function(data){
+      cleanup();
+      resolve(data);
+    };
+    script.src=url+'&callback='+cbName;
+    script.onerror=()=>{cleanup();reject(new Error('JSONP script error'));};
+    document.head.appendChild(script);
+  });
 }
 
 function setSyncStatus(state, msg){
