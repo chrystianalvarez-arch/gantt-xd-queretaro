@@ -385,18 +385,11 @@ async function apiFetch(action, body=null){
   const url=getApiUrl();
   if(!url) throw new Error('NO_API_URL');
   if(body===null){
-    // GET: usar JSONP para evitar CORS en Workspace corporativo
     return await jsonpFetch(`${url}?action=${action}&t=${Date.now()}`);
   }else{
-    // POST: fetch normal con mode no-cors fallback
-    try{
-      const r=await fetch(url,{method:'POST',body:JSON.stringify({action,...body}),headers:{'Content-Type':'text/plain'}});
-      return await r.json();
-    }catch(e){
-      // Si falla POST por CORS, guardar solo en local
-      console.warn('POST CORS error, saving locally only:', e.message);
-      return {ok:true,local:true};
-    }
+    // Encode payload as GET param to bypass CORS — works with JSONP
+    const payload=encodeURIComponent(JSON.stringify({action,...body}));
+    return await jsonpFetch(`${url}?action=${action}&payload=${payload}&t=${Date.now()}`);
   }
 }
 
