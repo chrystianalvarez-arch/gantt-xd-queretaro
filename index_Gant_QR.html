@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Gantt — Control Tower XD Querétaro 2026</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',Arial,sans-serif;background:#f5f4ef;color:#464646;min-height:100vh;}
+
+/* ── TOP BAR ── */
+.topbar{background:#FFDB00;padding:0 24px;display:flex;align-items:center;gap:16px;height:56px;border-bottom:3px solid #e6c400;position:sticky;top:0;z-index:50;}
+.topbar-logo{font-size:18px;font-weight:800;color:#464646;letter-spacing:-.5px;}
+.topbar-sub{font-size:12px;color:#7a6e00;font-weight:600;}
+.topbar-badges{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.tbadge{background:#464646;color:#FFDB00;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;}
+.tbadge.red{background:#cc0000;}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;padding:0 24px;background:#fff;border-bottom:2px solid #e8e8e8;}
+.tab{padding:14px 24px;font-size:13px;font-weight:700;color:#888;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.tab:hover{color:#464646;}
+.tab.active{color:#464646;border-bottom-color:#FFDB00;}
+
+/* ── CONTENT ── */
+.tab-content{display:none;padding:20px 24px;}
+.tab-content.active{display:block;}
+
+/* ── DASHBOARD ── */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;}
+.kpi-card{background:#fff;border-radius:10px;padding:16px 20px;border:1px solid #e8e8e8;}
+.kpi-label{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.kpi-val{font-size:28px;font-weight:800;color:#464646;}
+.kpi-sub{font-size:11px;color:#aaa;margin-top:2px;}
+.kpi-card.yellow .kpi-val{color:#c8a800;}
+.kpi-card.green .kpi-val{color:#1a7a4a;}
+.kpi-card.red .kpi-val{color:#cc0000;}
+.kpi-card.blue .kpi-val{color:#1a5fa0;}
+
+.section-title{font-size:13px;font-weight:800;color:#464646;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid #FFDB00;display:flex;align-items:center;gap:8px;}
+
+.progress-block{background:#fff;border-radius:10px;padding:18px 20px;margin-bottom:18px;border:1px solid #e8e8e8;}
+.prog-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.prog-label{font-size:12px;font-weight:700;color:#464646;width:280px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prog-bar-wrap{flex:1;background:#f0f0f0;border-radius:10px;height:14px;overflow:hidden;}
+.prog-bar{height:14px;border-radius:10px;background:#FFDB00;transition:width .4s;}
+.prog-bar.green{background:#1a7a4a;}
+.prog-bar.blue{background:#4a90d9;}
+.prog-bar.purple{background:#7b5ea7;}
+.prog-pct{font-size:11px;font-weight:700;color:#464646;width:36px;text-align:right;flex-shrink:0;}
+
+.alert-list{display:flex;flex-direction:column;gap:8px;}
+.alert-item{background:#fff;border-radius:8px;padding:12px 16px;border-left:4px solid #FFDB00;display:flex;align-items:flex-start;gap:12px;}
+.alert-item.warn{border-color:#ff6600;}
+.alert-item.crit{border-color:#cc0000;}
+.alert-item.ok{border-color:#1a7a4a;}
+.alert-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.alert-body{flex:1;}
+.alert-title{font-size:12px;font-weight:700;color:#464646;}
+.alert-meta{font-size:11px;color:#888;margin-top:2px;}
+.alert-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;display:inline-block;margin-left:6px;}
+.alert-badge.warn{background:#fff3e0;color:#cc5500;}
+.alert-badge.crit{background:#ffe0e0;color:#cc0000;}
+
+.owner-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;border:1px solid #e8e8e8;}
+.owner-table th{background:#464646;color:#FFDB00;font-size:11px;font-weight:700;padding:10px 14px;text-align:left;}
+.owner-table td{font-size:12px;padding:9px 14px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+.owner-table tr:last-child td{border-bottom:none;}
+.owner-table tr:hover td{background:#fffbdd;}
+.mini-bar-wrap{background:#f0f0f0;border-radius:6px;height:10px;width:80px;overflow:hidden;display:inline-block;}
+.mini-bar{height:10px;border-radius:6px;background:#FFDB00;}
+.tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;display:inline-block;}
+.tag.done{background:#d4edda;color:#155724;}
+.tag.pend{background:#fff3cd;color:#856404;}
+.tag.late{background:#f8d7da;color:#721c24;}
+
+/* ── GANTT TAB ── */
+.gantt-controls{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+.btn{font-size:11px;background:#FFDB00;border:none;border-radius:6px;padding:6px 16px;font-weight:700;color:#464646;cursor:pointer;}
+.btn:hover{background:#e6c400;}
+.btn.dark{background:#464646;color:#FFDB00;}
+.btn.dark:hover{background:#333;}
+.btn.outline{background:#fff;border:1px solid #D3D2C8;color:#464646;}
+.btn.outline:hover{background:#f5f5f0;}
+.scroll-hint{font-size:10px;color:#aaa;margin-bottom:6px;}
+.gantt-wrap{overflow-x:auto;border-radius:10px;border:1px solid #e8e8e8;background:#fff;}
+.g-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.g-th{font-size:9px;font-weight:700;color:#888;text-transform:uppercase;padding:5px 2px;border-bottom:2px solid #FFDB00;border-right:1px solid #e8e8e8;background:#fff;white-space:nowrap;text-align:center;}
+.g-th.col-info{text-align:left;position:sticky;left:0;z-index:3;background:#fff;width:270px;min-width:270px;}
+.wk-hdr{background:#464646;color:#FFDB00;font-size:9px;font-weight:700;text-align:center;padding:3px 2px;border-right:1px solid #555;}
+.g-row{border-bottom:1px solid #f0f0f0;}
+.g-row:hover{background:#fffbdd;}
+.g-cell-info{padding:0;position:sticky;left:0;z-index:1;border-right:2px solid #FFDB00;background:#fff;width:270px;min-width:270px;}
+.g-row:hover .g-cell-info{background:#fffbdd;}
+.ms-row{background:#fffef0;}
+.ms-row .g-cell-info{background:#fff9d6;}
+.ms-row:hover .g-cell-info,.ms-row:hover{background:#fff3a0;}
+.sub-row.hidden{display:none;}
+.g-info-inner{padding:7px 8px;display:flex;align-items:flex-start;gap:5px;min-height:34px;}
+.ms-row .g-info-inner{cursor:pointer;}
+.chevron{font-size:11px;color:#FFDB00;transition:transform .2s;flex-shrink:0;margin-top:2px;}
+.chevron.open{transform:rotate(90deg);}
+.ms-lbl{font-size:11px;font-weight:800;color:#464646;line-height:1.3;}
+.sub-lbl{font-size:10px;color:#555;line-height:1.3;}
+.owner-lbl{font-size:9px;color:#aaa;margin-top:1px;display:block;}
+.src-tag{font-size:8px;background:#464646;color:#FFDB00;border-radius:3px;padding:1px 4px;margin-left:3px;font-weight:700;}
+.genie-tag{font-size:8px;background:#ff6600;color:#fff;border-radius:3px;padding:1px 5px;margin-left:3px;font-weight:700;}
+.done-tag{font-size:8px;background:#1a7a4a;color:#fff;border-radius:3px;padding:1px 5px;margin-left:3px;font-weight:700;}
+.g-cell-day{padding:0;border-right:1px solid #f0f0f0;vertical-align:middle;}
+.dc{width:20px;min-width:20px;height:34px;position:relative;}
+.dc.sat{background:#f7f7f5!important;}
+.dc.nm{border-left:2px solid #FFDB00!important;}
+.dc.tod{border-left:2px solid #FF5A00!important;}
+.dc.dgl{background:#ffe0e0!important;border-left:2px solid #cc0000!important;}
+.dc.dpgl{background:#ffe8cc!important;border-left:2px solid #ff6600!important;}
+.dc.bms{background:#FFDB00!important;}
+.dc.bsub{background:#a0a098!important;}
+.dc.bcom{background:#1a7a4a!important;}
+.dc.bdem{background:#4a90d9!important;}
+.dc.bsen{background:#7b5ea7!important;}
+.dc.bemp{background:repeating-linear-gradient(45deg,#f0f0f0,#f0f0f0 3px,#e4e4e0 3px,#e4e4e0 6px)!important;}
+.dc.bdone{background:#c8e6c9!important;}
+.dl-m{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;}
+.dl-t{font-size:7px;font-weight:700;writing-mode:vertical-lr;transform:rotate(180deg);white-space:nowrap;overflow:hidden;}
+.add-sub-btn{font-size:9px;background:#f5f5f0;border:1px dashed #D3D2C8;border-radius:4px;padding:2px 7px;cursor:pointer;color:#888;margin:1px 6px 4px;display:block;}
+.add-sub-btn:hover{background:#FFDB00;color:#464646;border-color:#FFDB00;}
+.pct-chip{font-size:8px;background:#FFDB00;color:#464646;border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:700;}
+
+/* ── LEGEND ── */
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;align-items:center;background:#fff;padding:8px 14px;border-radius:8px;border:1px solid #e8e8e8;}
+.leg-i{display:flex;align-items:center;gap:4px;font-size:10px;color:#464646;}
+.leg-dot{width:11px;height:11px;border-radius:3px;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:flex;align-items:center;justify-content:center;}
+.modal{background:#fff;border-radius:12px;padding:24px;width:420px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.2);}
+.modal h3{font-size:14px;font-weight:800;color:#464646;margin-bottom:14px;border-bottom:2px solid #FFDB00;padding-bottom:8px;}
+.modal label{font-size:11px;font-weight:700;color:#666;display:block;margin-bottom:3px;margin-top:12px;}
+.modal input,.modal select,.modal textarea{width:100%;border:1px solid #D3D2C8;border-radius:6px;padding:7px 10px;font-size:12px;color:#464646;background:#fafafa;font-family:inherit;}
+.modal textarea{min-height:60px;resize:vertical;}
+.modal .btn-row{display:flex;gap:8px;margin-top:16px;justify-content:flex-end;}
+.modal .btn-danger{background:#ffe0e0;border:none;border-radius:6px;padding:7px 14px;font-size:11px;color:#c00;cursor:pointer;font-weight:700;}
+
+/* ── FOOTER ── */
+.footer{background:#464646;color:#FFDB00;font-size:10px;padding:10px 24px;display:flex;justify-content:space-between;margin-top:32px;}
+
+/* ── RESP. SELECTOR ── */
+.resp-bar{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:10px 16px;margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.resp-bar label{font-size:11px;font-weight:700;color:#888;}
+.resp-btn{font-size:11px;border:1px solid #D3D2C8;border-radius:16px;padding:4px 14px;cursor:pointer;background:#fff;color:#464646;font-weight:600;}
+.resp-btn.active{background:#464646;color:#FFDB00;border-color:#464646;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-logo">📦 Control Tower XD Querétaro</div>
+    <div class="topbar-sub">StartUp Execution · Centro/Bajío · MXSQR2 → XDQR02</div>
+  </div>
+  <div class="topbar-badges">
+    <span class="tbadge">Pre GL 10/09/26</span>
+    <span class="tbadge red">Go Live 24/09/26</span>
+    <span id="days-badge" class="tbadge" style="background:#1a7a4a;"></span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('dashboard')">📊 Cuadro de Mando</div>
+  <div class="tab" onclick="switchTab('gantt')">📅 Gantt</div>
+  <div class="tab" onclick="switchTab('alertas')">🔔 Alertas <span id="alert-count-tab" style="background:#cc0000;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></div>
+  <div class="tab" onclick="switchTab('responsables')">👥 Por Responsable</div>
+</div>
+
+<!-- ══════════════ TAB: DASHBOARD ══════════════ -->
+<div class="tab-content active" id="tab-dashboard">
+  <div class="dash-grid" id="kpi-grid"></div>
+
+  <div class="progress-block">
+    <div class="section-title">📈 Avance por Hito</div>
+    <div id="prog-hitos"></div>
+  </div>
+
+  <div class="progress-block">
+    <div class="section-title">👤 Avance por Responsable</div>
+    <div id="prog-resp"></div>
+  </div>
+
+  <div style="margin-top:18px;">
+    <div class="section-title">🔴 Alertas prioritarias</div>
+    <div id="dash-alerts" class="alert-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════ TAB: GANTT ══════════════ -->
+<div class="tab-content" id="tab-gantt">
+  <div class="legend">
+    <span style="font-size:10px;font-weight:800;margin-right:4px;">LEYENDA:</span>
+    <div class="leg-i"><div class="leg-dot" style="background:#FFDB00;"></div>Hito</div>
+    <div class="leg-i"><div class="leg-dot" style="background:#a0a098;"></div>Instalación</div>
+    <div class="leg-i"><div class="leg-dot" style="background:#1a7a4a;"></div>Commissioning</div>
+    <div class="leg-i"><div class="leg-dot" style="background:#4a90d9;"></div>Demarcación</div>
+    <div class="leg-i"><div class="leg-dot" style="background:#7b5ea7;"></div>Señalética</div>
+    <div class="leg-i"><div class="leg-dot" style="background:#c8e6c9;border:1px solid #1a7a4a;"></div>Completado</div>
+    <div class="leg-i"><div class="leg-dot" style="background:#f0f0f0;border:1px dashed #bbb;"></div>Sin fecha</div>
+    <div class="leg-i"><div class="leg-dot" style="background:#ffe0e0;border:2px solid #c00;"></div>Go Live</div>
+    <div class="leg-i"><div class="leg-dot" style="background:#ffe8cc;border:2px solid #f60;"></div>Pre Go Live</div>
+  </div>
+  <div class="gantt-controls">
+    <button class="btn" onclick="expandAll()">Expandir todo</button>
+    <button class="btn" onclick="collapseAll()">Colapsar todo</button>
+    <button class="btn outline" onclick="exportCSV()">⬇ Exportar CSV</button>
+  </div>
+  <div class="scroll-hint">← Desplaza horizontalmente para ver toda la línea de tiempo →</div>
+  <div class="gantt-wrap"><div id="gantt-container"></div></div>
+</div>
+
+<!-- ══════════════ TAB: ALERTAS ══════════════ -->
+<div class="tab-content" id="tab-alertas">
+  <div class="section-title">🔔 Alertas de Cumplimiento</div>
+  <p style="font-size:12px;color:#888;margin-bottom:16px;">Se generan alertas automáticas para actividades con fecha de cierre en los próximos <strong>8 días</strong> o que ya estén vencidas.</p>
+  <div id="alerts-full" class="alert-list"></div>
+</div>
+
+<!-- ══════════════ TAB: RESPONSABLES ══════════════ -->
+<div class="tab-content" id="tab-responsables">
+  <div class="resp-bar" id="resp-filter">
+    <label>FILTRAR:</label>
+  </div>
+  <table class="owner-table" id="owner-table">
+    <thead><tr>
+      <th>Responsable</th><th>Actividad</th><th>Hito</th><th>Fecha inicio</th><th>Fecha fin</th><th>Tipo</th><th>Estado</th><th>Acciones</th>
+    </tr></thead>
+    <tbody id="owner-tbody"></tbody>
+  </table>
+</div>
+
+<div class="footer">
+  <span>MercadoLibre · StartUp Execution · Centro/Bajío · <a href="https://chrystianalvarez-arch.github.io/hc_metros_hsp/" style="color:#FFDB00;" target="_blank">hc_metros_hsp</a></span>
+  <span id="ftr-ts"></span>
+</div>
+
+<div id="modal-container"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+const TODAY = new Date(2026,5,5);
+const GOLIVE = new Date(2026,8,24);
+const PREGOLIVE = new Date(2026,8,10);
+const GANTT_START = new Date(2026,5,8);
+const GANTT_END = new Date(2026,8,27);
+const ALERT_DAYS = 8;
+
+const OWNERS = {
+  Emanuel:'Emanuel Palacios', Mauro:'Mauro F. Arroyo', Ulises:'Ulises Miranda',
+  Kimberly:'Kimberly Enriquez', Gustavo:'Gustavo I. Alonso', Rodrigo:'Rodrigo A. Arias',
+  Chrys:'Chrystian C. Duque', Itzel:'Itzel Gorospe', Rafael:'Rafael Buitron',
+  Zaide:'Maria Zaide Solis', Luis:'Luis Daniel Rios', Isra:'Isra (D&C)'
+};
+
+const TYPE_LABELS = {ops:'Operaciones',inst:'Instalación',comm:'Commissioning',demar:'Demarcación',senal:'Señalética'};
+const TYPE_COLORS = {ops:'#a0a098',inst:'#6b6b63',comm:'#1a7a4a',demar:'#4a90d9',senal:'#7b5ea7'};
+const TYPE_ICONS = {ops:'⚙️',inst:'🔧',comm:'🔬',demar:'📐',senal:'🪧'};
+
+function pd(s){if(!s)return null;const[d,m,y]=s.split('/').map(Number);return new Date(y,m-1,d);}
+function fd(d){if(!d)return '';return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function isSun(d){return d.getDay()===0;}
+function isFirstM(d){return d.getDate()===1;}
+function inRange(day,s,e){if(!s||!e)return false;return day>=pd(s)&&day<=pd(e);}
+function daysUntil(endStr){if(!endStr)return null;const diff=pd(endStr)-TODAY;return Math.ceil(diff/(1000*60*60*24));}
+
+function buildDays(from,to){
+  const days=[];let cur=new Date(from);
+  while(cur<=to){if(!isSun(cur))days.push(new Date(cur));cur=addD(cur,1);}
+  return days;
+}
+const DAYS = buildDays(GANTT_START, GANTT_END);
+
+// ── STORAGE ──
+const STORAGE_KEY = 'gantt_xd_qro_v3';
+function loadData(){
+  try{const s=localStorage.getItem(STORAGE_KEY);if(s)return JSON.parse(s);}catch(e){}
+  return null;
+}
+function saveData(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(milestones));}catch(e){}
+}
+
+// ── MILESTONES ──
+const DEFAULT_DATA = [
+  {id:'capex',label:'Cierre de Capex y generación de OI',owners:['Emanuel','Mauro','Ulises'],start:'08/06/2026',end:'30/06/2026',expanded:true,
+   subs:[
+    {id:'capex-1',label:'Levantamiento de requerimientos Capex',owner:'Emanuel',start:'08/06/2026',end:'12/06/2026',type:'ops',done:false},
+    {id:'capex-2',label:'Generación de OI en sistema',owner:'Mauro',start:null,end:null,type:'ops',done:false},
+    {id:'capex-3',label:'Aprobación ejecutiva',owner:'Ulises',start:null,end:null,type:'ops',done:false},
+  ]},
+  {id:'h1',label:'Hito 1 — Mudanza de Conveyors (GM → nuevo espacio)',owners:['Kimberly','Gustavo','Rodrigo'],start:'15/06/2026',end:'31/07/2026',expanded:false,
+   subs:[
+    {id:'h1-ops1',label:'Coordinación con Ops: plan operación SVC durante desinstalación',owner:'Kimberly',start:null,end:null,type:'ops',done:false},
+    {id:'h1-ops2',label:'Estrategia de mudanza Conveyor Manual',owner:'Rodrigo',start:null,end:null,type:'ops',done:false},
+    {id:'h1-i1',label:'Marcaje de posiciones en nuevo espacio (L1 XD + L3 SVC)',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h1-i2',label:'Desinstalación mecánica Conveyor GM (L3 SVC)',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h1-i3',label:'Instalación mecánica L1 XD en nuevo espacio',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h1-i4',label:'Instalación eléctrica L1 XD',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h1-i5',label:'Instalación mecánica L2 XD en nuevo espacio',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h1-i6',label:'Instalación eléctrica L2 XD',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h1-i7',label:'Puesta a punto L1 XD / L2 XD',owner:'Kimberly',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h1-i8',label:'Reinstalación mecánica L3 SVC (conveyor manual)',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h1-i9',label:'Instalación eléctrica L3 SVC',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h1-i10',label:'Puesta a punto L3 SVC',owner:'Kimberly',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h1-c1',label:'Entrega de Critical Spare Parts',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h1-c2',label:'IQ L1 XD (Installation Qualification)',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h1-c3',label:'OQ L1 XD (Operational Qualification)',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h1-c4',label:'IQ / OQ L2 XD',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h1-c5',label:'IQ / OQ L3 SVC',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h1-c6',label:'PQ L1 XD (Performance Qualification)',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h1-c7',label:'PQ L2 XD',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h1-c8',label:'PQ L3 SVC',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h1-c9',label:'Training personal MELI en operación de conveyor',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h1-c10',label:'Punch list y cierre de observaciones',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h1-she',label:'Confirmación suministro eléctrico / generador',owner:'Isra',start:null,end:null,type:'comm',src:'EP',done:false},
+  ]},
+  {id:'h2',label:'Hito 2 — Demarcación y señalética zona SVC',owners:['Chrys','Itzel','Rafael'],start:'01/07/2026',end:'25/07/2026',expanded:false,
+   subs:[
+    {id:'h2-1',label:'Plano de demarcación zona SVC',owner:'Chrys',start:null,end:null,type:'ops',done:false},
+    {id:'h2-2',label:'Cotización y compra señalética',owner:'Itzel',start:null,end:null,type:'ops',done:false},
+    {id:'h2-3a',label:'Demarcación layout operativo — pasos peatonales y docas de despacho',owner:'Rafael',start:null,end:null,type:'demar',done:false},
+    {id:'h2-3b',label:'Demarcación layout operativo — huellas en conveyors, zonas 5S, etc.',owner:'Rafael',start:null,end:null,type:'demar',done:false},
+    {id:'h2-3c',label:'Instalación señalética Meli — banderas, letreros WOW/site, tableros 5S, estaciones de aseo, licencias',owner:'Itzel',start:null,end:null,type:'senal',genie:true,done:false},
+    {id:'h2-3d',label:'Re-ubicación señalética aérea',owner:'Rafael',start:null,end:null,type:'senal',genie:true,done:false},
+  ]},
+  {id:'h21',label:'Hito 2.1 — Espacio Metro (¿simultáneo?)',owners:['Zaide'],start:null,end:null,expanded:false,
+   subs:[
+    {id:'h21-1',label:'Definición de operación Metro en nuevo espacio',owner:'Zaide',start:null,end:null,type:'ops',done:false},
+    {id:'h21-2',label:'Adecuación física zona Metro',owner:'Zaide',start:null,end:null,type:'ops',done:false},
+  ]},
+  {id:'h3',label:'Hito 3 — Mudanza del SVC al nuevo espacio',owners:['Rodrigo','Chrys'],start:'01/08/2026',end:'20/08/2026',expanded:false,
+   subs:[
+    {id:'h3-1',label:'Plan logístico de mudanza SVC',owner:'Rodrigo',start:null,end:null,type:'ops',done:false},
+    {id:'h3-2',label:'Ejecución mudanza SVC',owner:'Chrys',start:null,end:null,type:'ops',done:false},
+    {id:'h3-3',label:'Validación operativa post-mudanza SVC',owner:'Rodrigo',start:null,end:null,type:'ops',done:false},
+  ]},
+  {id:'h4',label:'Hito 4 — Instalación de Conveyors en XD',owners:['Kimberly','Gustavo'],start:'10/08/2026',end:'05/09/2026',expanded:false,
+   subs:[
+    {id:'h4-i1',label:'Marcaje de posiciones zona XD',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h4-i2',label:'Instalación mecánica L1 XD',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h4-i3',label:'Instalación eléctrica L1 XD',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h4-i4',label:'Instalación mecánica L2 XD',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h4-i5',label:'Instalación eléctrica L2 XD',owner:'Gustavo',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h4-i6',label:'Puesta a punto L1 XD',owner:'Kimberly',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h4-i7',label:'Puesta a punto L2 XD',owner:'Kimberly',start:null,end:null,type:'inst',src:'EP',done:false},
+    {id:'h4-c1',label:'Entrega de Critical Spare Parts XD',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h4-c2',label:'IQ L1 XD (Installation Qualification)',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h4-c3',label:'OQ L1 XD (Operational Qualification)',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h4-c4',label:'IQ / OQ L2 XD',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h4-c5',label:'PQ L1 XD — 1,800 paquetes prueba',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h4-c6',label:'PQ L2 XD — 63 garrafones ~50 kg/ml',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h4-c7',label:'Training personal MELI — operación XD',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h4-c8',label:'Punch list y cierre de observaciones XD',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h4-c9',label:'Confirmación suministro eléctrico (6 Reps/línea + 2 Técnicos)',owner:'Isra',start:null,end:null,type:'comm',src:'EP',done:false},
+  ]},
+  {id:'h5',label:'Hito 5 — Demarcación y señalética zona XD',owners:['Itzel','Rafael','Chrys'],start:'20/08/2026',end:'08/09/2026',expanded:false,
+   subs:[
+    {id:'h5-1',label:'Plano de demarcación zona XD',owner:'Chrys',start:null,end:null,type:'ops',done:false},
+    {id:'h5-2',label:'Cotización y compra señalética XD',owner:'Itzel',start:null,end:null,type:'ops',done:false},
+    {id:'h5-3a',label:'Demarcación layout operativo — pasos peatonales y docas de despacho',owner:'Rafael',start:null,end:null,type:'demar',done:false},
+    {id:'h5-3b',label:'Demarcación layout operativo — huellas en conveyors, zonas 5S, etc.',owner:'Rafael',start:null,end:null,type:'demar',done:false},
+    {id:'h5-3c',label:'Instalación señalética Meli — banderas, letreros WOW/site, tableros 5S, estaciones de aseo, licencias',owner:'Itzel',start:null,end:null,type:'senal',genie:true,done:false},
+    {id:'h5-3d',label:'Re-ubicación señalética aérea',owner:'Rafael',start:null,end:null,type:'senal',genie:true,done:false},
+  ]},
+  {id:'h6',label:'Hito 6 — Mudanza del XD',owners:['Luis','Chrys'],start:'09/09/2026',end:'22/09/2026',expanded:false,
+   subs:[
+    {id:'h6-1',label:'Plan logístico mudanza XD',owner:'Luis',start:null,end:null,type:'ops',done:false},
+    {id:'h6-2',label:'Ejecución mudanza XD',owner:'Chrys',start:null,end:null,type:'ops',done:false},
+    {id:'h6-3',label:'Validación operativa XD post-mudanza',owner:'Luis',start:null,end:null,type:'ops',done:false},
+    {id:'h6-4',label:'Checklist pre Go Live XD',owner:'Chrys',start:null,end:null,type:'ops',done:false},
+    {id:'h6-5',label:'Documentación final handover (G06/G07)',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+    {id:'h6-6',label:'Acompañamiento post Go Live',owner:'Kimberly',start:null,end:null,type:'comm',src:'EP',done:false},
+  ]},
+];
+
+let milestones = loadData() || JSON.parse(JSON.stringify(DEFAULT_DATA));
+
+// ══════════════════════════════════════════
+//  COMPUTED STATS
+// ══════════════════════════════════════════
+function allSubs(){return milestones.flatMap(m=>m.subs.map(s=>({...s,msLabel:m.label,msId:m.id})));}
+
+function milestonePct(ms){
+  const t=ms.subs.length; if(!t)return 0;
+  return Math.round(ms.subs.filter(s=>s.done).length/t*100);
+}
+function totalPct(){
+  const all=allSubs(); if(!all.length)return 0;
+  return Math.round(all.filter(s=>s.done).length/all.length*100);
+}
+function ownerStats(){
+  const stats={};
+  allSubs().forEach(s=>{
+    const k=s.owner;
+    if(!stats[k]) stats[k]={total:0,done:0,late:0,soon:0};
+    stats[k].total++;
+    if(s.done) stats[k].done++;
+    else {
+      const du=daysUntil(s.end);
+      if(du!==null){
+        if(du<0) stats[k].late++;
+        else if(du<=ALERT_DAYS) stats[k].soon++;
+      }
+    }
+  });
+  return stats;
+}
+
+function buildAlerts(){
+  const alerts=[];
+  allSubs().forEach(s=>{
+    if(s.done) return;
+    const du=daysUntil(s.end);
+    if(du===null) return;
+    if(du<0){
+      alerts.push({type:'crit',sub:s,du,msg:`Vencida hace ${Math.abs(du)} día${Math.abs(du)>1?'s':''}`});
+    } else if(du<=ALERT_DAYS){
+      alerts.push({type:'warn',sub:s,du,msg:`Vence en ${du} día${du!==1?'s':''}`});
+    }
+  });
+  alerts.sort((a,b)=>a.du-b.du);
+  return alerts;
+}
+
+// ══════════════════════════════════════════
+//  RENDER DASHBOARD
+// ══════════════════════════════════════════
+function renderDashboard(){
+  const all=allSubs();
+  const done=all.filter(s=>s.done).length;
+  const pct=totalPct();
+  const alerts=buildAlerts();
+  const critAlerts=alerts.filter(a=>a.type==='crit');
+  const warnAlerts=alerts.filter(a=>a.type==='warn');
+  const noDate=all.filter(s=>!s.end&&!s.done).length;
+  const dgl=Math.ceil((GOLIVE-TODAY)/(1000*60*60*24));
+
+  document.getElementById('days-badge').textContent=`${dgl} días para Go Live`;
+
+  document.getElementById('kpi-grid').innerHTML=`
+    <div class="kpi-card yellow"><div class="kpi-label">Avance global</div><div class="kpi-val">${pct}%</div><div class="kpi-sub">${done} de ${all.length} actividades</div></div>
+    <div class="kpi-card ${critAlerts.length?'red':'green'}"><div class="kpi-label">Actividades vencidas</div><div class="kpi-val">${critAlerts.length}</div><div class="kpi-sub">Sin completar y fuera de fecha</div></div>
+    <div class="kpi-card ${warnAlerts.length?'yellow':'green'}"><div class="kpi-label">Próximas a vencer</div><div class="kpi-val">${warnAlerts.length}</div><div class="kpi-sub">Dentro de ${ALERT_DAYS} días</div></div>
+    <div class="kpi-card blue"><div class="kpi-label">Sin fecha asignada</div><div class="kpi-val">${noDate}</div><div class="kpi-sub">Requieren programación</div></div>
+    <div class="kpi-card"><div class="kpi-label">Días para Go Live</div><div class="kpi-val">${dgl}</div><div class="kpi-sub">24 septiembre 2026</div></div>
+    <div class="kpi-card"><div class="kpi-label">Hitos totales</div><div class="kpi-val">${milestones.length}</div><div class="kpi-sub">${milestones.filter(m=>milestonePct(m)===100).length} completados</div></div>
+  `;
+
+  // Progress by hito
+  let ph='';
+  milestones.forEach(ms=>{
+    const p=milestonePct(ms);
+    const col=p===100?'green':p>0?'':'';
+    ph+=`<div class="prog-row">
+      <div class="prog-label" title="${ms.label}">${ms.label}</div>
+      <div class="prog-bar-wrap"><div class="prog-bar ${col}" style="width:${p}%;"></div></div>
+      <div class="prog-pct">${p}%</div>
+    </div>`;
+  });
+  document.getElementById('prog-hitos').innerHTML=ph;
+
+  // Progress by owner
+  const os=ownerStats();
+  let po='';
+  Object.entries(os).sort((a,b)=>b[1].total-a[1].total).forEach(([k,v])=>{
+    const p=v.total?Math.round(v.done/v.total*100):0;
+    const col=p===100?'green':v.late?'':v.soon?'':'';
+    po+=`<div class="prog-row">
+      <div class="prog-label">${OWNERS[k]||k} <span style="font-size:9px;color:#aaa;">(${v.total} actividades)</span></div>
+      <div class="prog-bar-wrap"><div class="prog-bar ${col}" style="width:${p}%;"></div></div>
+      <div class="prog-pct">${p}%</div>
+    </div>`;
+  });
+  document.getElementById('prog-resp').innerHTML=po||'<p style="color:#aaa;font-size:12px;">Sin datos aún.</p>';
+
+  // Top alerts on dashboard (max 5)
+  renderAlertList(document.getElementById('dash-alerts'), alerts.slice(0,5));
+  document.getElementById('alert-count-tab').textContent=alerts.length||'';
+}
+
+function renderAlertList(el, alerts){
+  if(!alerts.length){el.innerHTML='<div class="alert-item ok"><div class="alert-icon">✅</div><div class="alert-body"><div class="alert-title">Sin alertas activas</div><div class="alert-meta">Todas las actividades con fecha están dentro de plazo.</div></div></div>';return;}
+  el.innerHTML=alerts.map(a=>`
+    <div class="alert-item ${a.type}">
+      <div class="alert-icon">${a.type==='crit'?'🔴':'🟡'}</div>
+      <div class="alert-body">
+        <div class="alert-title">${a.sub.label}<span class="alert-badge ${a.type}">${a.msg}</span></div>
+        <div class="alert-meta">📌 ${a.sub.msLabel} · 👤 ${OWNERS[a.sub.owner]||a.sub.owner} · Fecha límite: <strong>${a.sub.end}</strong></div>
+      </div>
+      <button class="btn outline" style="font-size:10px;padding:4px 10px;flex-shrink:0;" onclick="openEditById('${a.sub.msId}','${a.sub.id}')">Editar</button>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+//  RENDER ALERTS TAB
+// ══════════════════════════════════════════
+function renderAlertsTab(){
+  renderAlertList(document.getElementById('alerts-full'), buildAlerts());
+}
+
+// ══════════════════════════════════════════
+//  RENDER RESPONSABLES TAB
+// ══════════════════════════════════════════
+let activeOwnerFilter = 'ALL';
+function renderResponsablesTab(){
+  const filterEl=document.getElementById('resp-filter');
+  const os=ownerStats();
+  let fb='<label>FILTRAR:</label><button class="resp-btn '+(activeOwnerFilter==='ALL'?'active':'')+'" onclick="setOwnerFilter(\'ALL\')">Todos</button>';
+  Object.keys(os).forEach(k=>{
+    fb+=`<button class="resp-btn ${activeOwnerFilter===k?'active':''}" onclick="setOwnerFilter('${k}')">${OWNERS[k]||k}</button>`;
+  });
+  filterEl.innerHTML=fb;
+
+  const subs=allSubs().filter(s=>activeOwnerFilter==='ALL'||s.owner===activeOwnerFilter);
+  const tbody=document.getElementById('owner-tbody');
+  tbody.innerHTML=subs.map(s=>{
+    const du=daysUntil(s.end);
+    let statusTag='<span class="tag pend">Pendiente</span>';
+    if(s.done) statusTag='<span class="tag done">✓ Completado</span>';
+    else if(du!==null&&du<0) statusTag='<span class="tag late">⚠ Vencida</span>';
+    else if(du!==null&&du<=ALERT_DAYS) statusTag=`<span class="tag late" style="background:#fff3cd;color:#856404;">⏰ ${du}d</span>`;
+    return `<tr>
+      <td><strong>${OWNERS[s.owner]||s.owner}</strong></td>
+      <td style="max-width:220px;font-size:11px;">${TYPE_ICONS[s.type]||''} ${s.label}</td>
+      <td style="font-size:10px;color:#888;">${s.msLabel.substring(0,30)}…</td>
+      <td style="font-size:11px;">${s.start||'—'}</td>
+      <td style="font-size:11px;">${s.end||'—'}</td>
+      <td><span style="font-size:9px;background:${TYPE_COLORS[s.type]};color:#fff;padding:2px 7px;border-radius:10px;">${TYPE_LABELS[s.type]||s.type}</span></td>
+      <td>${statusTag}</td>
+      <td>
+        <button class="btn outline" style="font-size:10px;padding:3px 8px;" onclick="openEditById('${s.msId}','${s.id}')">✎ Editar</button>
+        ${!s.done?`<button class="btn" style="font-size:10px;padding:3px 8px;margin-left:3px;background:#1a7a4a;color:#fff;" onclick="markDone('${s.msId}','${s.id}')">✓</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+function setOwnerFilter(k){activeOwnerFilter=k;renderResponsablesTab();}
+
+// ══════════════════════════════════════════
+//  RENDER GANTT
+// ══════════════════════════════════════════
+function barClass(sub){
+  if(sub.done) return 'bdone';
+  if(!sub.start||!sub.end) return 'bemp';
+  if(sub.type==='comm') return 'bcom';
+  if(sub.type==='demar') return 'bdem';
+  if(sub.type==='senal') return 'bsen';
+  if(sub.type==='inst') return 'bsub';
+  return 'bsub';
+}
+
+function renderGantt(){
+  const weeks=[];let wk=[];
+  DAYS.forEach((d,i)=>{wk.push(d);if(d.getDay()===6||i===DAYS.length-1){weeks.push(wk);wk=[];}});
+
+  let h='<table class="g-table"><thead><tr>';
+  h+='<th class="g-th col-info" rowspan="2">Hito / Sub-actividad</th>';
+  weeks.forEach(wk=>{
+    const m=wk[0];
+    h+=`<th class="wk-hdr" colspan="${wk.length}">${String(m.getDate()).padStart(2,'0')}/${String(m.getMonth()+1).padStart(2,'0')}</th>`;
+  });
+  h+='</tr><tr>';
+  DAYS.forEach(d=>{
+    let cls='g-th';let sty='';
+    if(d.getDay()===6)cls+=' sat';
+    if(isFirstM(d))cls+=' nm';
+    if(d.toDateString()===GOLIVE.toDateString())sty='background:#ffe0e0;color:#c00;';
+    else if(d.toDateString()===PREGOLIVE.toDateString())sty='background:#ffe8cc;color:#b44;';
+    else if(d.toDateString()===TODAY.toDateString())sty='border-bottom:3px solid #FF5A00;';
+    h+=`<th class="${cls}" style="width:20px;min-width:20px;padding:3px 1px;${sty}">${String(d.getDate()).padStart(2,'0')}</th>`;
+  });
+  h+='</tr></thead><tbody>';
+
+  milestones.forEach(ms=>{
+    const pct=milestonePct(ms);
+    const owStr=ms.owners.map(o=>OWNERS[o]||o).join(', ');
+    h+=`<tr class="g-row ms-row" id="row-${ms.id}">`;
+    h+=`<td class="g-cell-info">
+      <div class="g-info-inner" onclick="toggleMs('${ms.id}')">
+        <span class="chevron ${ms.expanded?'open':''}" id="chev-${ms.id}">▶</span>
+        <div style="flex:1;">
+          <div class="ms-lbl">${ms.label}<span class="pct-chip">${pct}%</span></div>
+          <span class="owner-lbl">${owStr}</span>
+        </div>
+      </div>
+      <button class="add-sub-btn" onclick="openAdd('${ms.id}')">+ Sub-actividad</button>
+    </td>`;
+    DAYS.forEach(d=>{
+      let cls='dc';let inner='';
+      if(d.getDay()===6)cls+=' sat';
+      if(isFirstM(d))cls+=' nm';
+      if(d.toDateString()===TODAY.toDateString())cls+=' tod';
+      if(d.toDateString()===GOLIVE.toDateString()){cls+=' dgl';inner='<div class="dl-m"><span class="dl-t" style="color:#c00;">GO LIVE</span></div>';}
+      else if(d.toDateString()===PREGOLIVE.toDateString()){cls+=' dpgl';inner='<div class="dl-m"><span class="dl-t" style="color:#a33;">PRE GL</span></div>';}
+      else if(inRange(d,ms.start,ms.end))cls+=' bms';
+      h+=`<td class="g-cell-day ${cls}">${inner}</td>`;
+    });
+    h+='</tr>';
+
+    ms.subs.forEach(sub=>{
+      const du=daysUntil(sub.end);
+      const alertStyle=(!sub.done&&du!==null&&du<=ALERT_DAYS&&du>=0)?'background:#fffbdd;':(!sub.done&&du!==null&&du<0)?'background:#fff0f0;':'';
+      const srcTag=sub.src?`<span class="src-tag">EP</span>`:'';
+      const genieTag=sub.genie?`<span class="genie-tag">⚠ Genie</span>`:'';
+      const doneTag=sub.done?`<span class="done-tag">✓</span>`:'';
+      const dateLabel=(sub.start&&sub.end)?` · ${sub.start}→${sub.end}`:(sub.end?` · Cierre: ${sub.end}`:' · Sin fecha');
+      h+=`<tr class="g-row sub-row ${ms.expanded?'':'hidden'}" id="subrow-${sub.id}" style="${alertStyle}">`;
+      h+=`<td class="g-cell-info" style="${alertStyle}">
+        <div class="g-info-inner" style="cursor:default;">
+          <div style="flex:1;">
+            <div class="sub-lbl">${TYPE_ICONS[sub.type]||''} ${sub.label}${srcTag}${genieTag}${doneTag}</div>
+            <span class="owner-lbl">${OWNERS[sub.owner]||sub.owner}${dateLabel}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;">
+            <button class="add-sub-btn" style="margin:0;padding:2px 5px;" onclick="openEditById('${ms.id}','${sub.id}')">✎</button>
+            ${!sub.done?`<button class="add-sub-btn" style="margin:0;padding:2px 5px;background:#d4edda;border-color:#1a7a4a;color:#1a7a4a;" onclick="markDone('${ms.id}','${sub.id}')">✓</button>`:''}
+          </div>
+        </div>
+      </td>`;
+      const bc=barClass(sub);
+      DAYS.forEach(d=>{
+        let cls='dc';
+        if(d.getDay()===6)cls+=' sat';
+        if(isFirstM(d))cls+=' nm';
+        if(d.toDateString()===TODAY.toDateString())cls+=' tod';
+        if(d.toDateString()===GOLIVE.toDateString())cls+=' dgl';
+        else if(d.toDateString()===PREGOLIVE.toDateString())cls+=' dpgl';
+        else if(inRange(d,sub.start,sub.end))cls+=` ${bc}`;
+        else if(!sub.start||!sub.end)cls+=' bemp';
+        h+=`<td class="g-cell-day ${cls}"></td>`;
+      });
+      h+='</tr>';
+    });
+  });
+  h+='</tbody></table>';
+  document.getElementById('gantt-container').innerHTML=h;
+}
+
+// ══════════════════════════════════════════
+//  INTERACTIONS
+// ══════════════════════════════════════════
+function toggleMs(id){
+  const ms=milestones.find(m=>m.id===id);if(!ms)return;
+  ms.expanded=!ms.expanded;
+  ms.subs.forEach(s=>{
+    const r=document.getElementById('subrow-'+s.id);
+    if(r){if(ms.expanded)r.classList.remove('hidden');else r.classList.add('hidden');}
+  });
+  const c=document.getElementById('chev-'+id);
+  if(c){if(ms.expanded)c.classList.add('open');else c.classList.remove('open');}
+  saveData();
+}
+function expandAll(){milestones.forEach(m=>{if(!m.expanded){m.expanded=true;} });saveData();renderGantt();}
+function collapseAll(){milestones.forEach(m=>{if(m.expanded){m.expanded=false;}});saveData();renderGantt();}
+
+function markDone(msId,subId){
+  const ms=milestones.find(m=>m.id===msId);
+  const sub=ms?.subs.find(s=>s.id===subId);
+  if(sub){sub.done=!sub.done;saveData();renderAll();}
+}
+
+function openAdd(msId){
+  const ms=milestones.find(m=>m.id===msId);
+  document.getElementById('modal-container').innerHTML=`
+    <div class="modal-overlay" onclick="closeModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <h3>+ Nueva sub-actividad<br><small style="font-weight:400;font-size:11px;color:#888;">${ms.label.substring(0,50)}…</small></h3>
+        <label>Descripción *</label><input id="m-lbl" type="text" placeholder="Ej: Validar layout con operaciones"/>
+        <label>Tipo</label>
+        <select id="m-type">
+          <option value="ops">⚙️ Operaciones</option>
+          <option value="inst">🔧 Instalación mecánica/eléctrica</option>
+          <option value="comm">🔬 Commissioning / Prueba</option>
+          <option value="demar">📐 Demarcación</option>
+          <option value="senal">🪧 Señalética</option>
+        </select>
+        <label>Responsable *</label>
+        <select id="m-own">${Object.entries(OWNERS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+        <label>¿Requiere Genie?</label>
+        <select id="m-genie"><option value="no">No</option><option value="yes">Sí ⚠</option></select>
+        <label>Fecha inicio (DD/MM/AAAA)</label><input id="m-s" type="text" placeholder="08/06/2026"/>
+        <label>Fecha fin / deadline (DD/MM/AAAA)</label><input id="m-e" type="text" placeholder="15/06/2026"/>
+        <label>Notas</label><textarea id="m-notes" placeholder="Observaciones, dependencias..."></textarea>
+        <div class="btn-row">
+          <button class="btn outline" onclick="closeModal()">Cancelar</button>
+          <button class="btn" onclick="saveSub('${msId}')">Guardar</button>
+        </div>
+      </div></div>`;
+}
+
+function openEditById(msId,subId){
+  const ms=milestones.find(m=>m.id===msId);
+  const sub=ms?.subs.find(s=>s.id===subId);if(!sub)return;
+  document.getElementById('modal-container').innerHTML=`
+    <div class="modal-overlay" onclick="closeModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <h3>✎ Editar sub-actividad</h3>
+        <label>Descripción</label><input id="m-lbl" type="text" value="${sub.label.replace(/"/g,'&quot;').replace(/'/g,'&#39;')}"/>
+        <label>Tipo</label>
+        <select id="m-type">
+          <option value="ops" ${sub.type==='ops'?'selected':''}>⚙️ Operaciones</option>
+          <option value="inst" ${sub.type==='inst'?'selected':''}>🔧 Instalación</option>
+          <option value="comm" ${sub.type==='comm'?'selected':''}>🔬 Commissioning</option>
+          <option value="demar" ${sub.type==='demar'?'selected':''}>📐 Demarcación</option>
+          <option value="senal" ${sub.type==='senal'?'selected':''}>🪧 Señalética</option>
+        </select>
+        <label>Responsable</label>
+        <select id="m-own">${Object.entries(OWNERS).map(([k,v])=>`<option value="${k}" ${k===sub.owner?'selected':''}>${v}</option>`).join('')}</select>
+        <label>¿Requiere Genie?</label>
+        <select id="m-genie"><option value="no" ${!sub.genie?'selected':''}>No</option><option value="yes" ${sub.genie?'selected':''}>Sí ⚠</option></select>
+        <label>Fecha inicio</label><input id="m-s" type="text" value="${sub.start||''}" placeholder="08/06/2026"/>
+        <label>Fecha fin / deadline</label><input id="m-e" type="text" value="${sub.end||''}" placeholder="15/06/2026"/>
+        <label>Estado</label>
+        <select id="m-done"><option value="no" ${!sub.done?'selected':''}>Pendiente</option><option value="yes" ${sub.done?'selected':''}>✓ Completado</option></select>
+        <label>Notas</label><textarea id="m-notes">${sub.notes||''}</textarea>
+        <div class="btn-row">
+          <button class="btn-danger" onclick="delSub('${msId}','${subId}')">🗑 Eliminar</button>
+          <button class="btn outline" onclick="closeModal()">Cancelar</button>
+          <button class="btn" onclick="updSub('${msId}','${subId}')">Actualizar</button>
+        </div>
+      </div></div>`;
+}
+
+function saveSub(msId){
+  const lbl=document.getElementById('m-lbl').value.trim();if(!lbl)return;
+  const ms=milestones.find(m=>m.id===msId);
+  ms.subs.push({
+    id:`${msId}-${Date.now()}`,label:lbl,
+    owner:document.getElementById('m-own').value,
+    start:document.getElementById('m-s').value.trim()||null,
+    end:document.getElementById('m-e').value.trim()||null,
+    type:document.getElementById('m-type').value,
+    genie:document.getElementById('m-genie').value==='yes',
+    notes:document.getElementById('m-notes').value.trim(),
+    done:false
+  });
+  saveData();closeModal();renderAll();
+}
+function updSub(msId,subId){
+  const ms=milestones.find(m=>m.id===msId);
+  const sub=ms?.subs.find(s=>s.id===subId);if(!sub)return;
+  sub.label=document.getElementById('m-lbl').value.trim();
+  sub.owner=document.getElementById('m-own').value;
+  sub.start=document.getElementById('m-s').value.trim()||null;
+  sub.end=document.getElementById('m-e').value.trim()||null;
+  sub.type=document.getElementById('m-type').value;
+  sub.genie=document.getElementById('m-genie').value==='yes';
+  sub.done=document.getElementById('m-done').value==='yes';
+  sub.notes=document.getElementById('m-notes').value.trim();
+  saveData();closeModal();renderAll();
+}
+function delSub(msId,subId){
+  const ms=milestones.find(m=>m.id===msId);
+  if(ms)ms.subs=ms.subs.filter(s=>s.id!==subId);
+  saveData();closeModal();renderAll();
+}
+function closeModal(e){
+  if(e&&e.target!==e.currentTarget)return;
+  document.getElementById('modal-container').innerHTML='';
+}
+
+function exportCSV(){
+  let rows=['Hito,Tipo,Sub-actividad,Genie,Responsable,Fecha inicio,Fecha fin,Estado,Fuente'];
+  milestones.forEach(ms=>{
+    ms.subs.forEach(s=>{
+      rows.push(`"${ms.label}","${s.type}","${s.label}","${s.genie?'Sí':'No'}",${OWNERS[s.owner]||s.owner},${s.start||'TBD'},${s.end||'TBD'},${s.done?'Completado':'Pendiente'},${s.src||''}`);
+    });
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'}));
+  a.download=`gantt_xd_queretaro_${fd(TODAY).replace(/\//g,'-')}.csv`;a.click();
+}
+
+// ══════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['dashboard','gantt','alertas','responsables'][i]===name));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('active',c.id===`tab-${name}`));
+  if(name==='dashboard')renderDashboard();
+  if(name==='gantt')renderGantt();
+  if(name==='alertas')renderAlertsTab();
+  if(name==='responsables')renderResponsablesTab();
+}
+
+function renderAll(){
+  const active=['dashboard','gantt','alertas','responsables'].find(t=>document.getElementById(`tab-${t}`).classList.contains('active'))||'dashboard';
+  switchTab(active);
+}
+
+// ── INIT ──
+document.getElementById('ftr-ts').textContent=`v3 · ${fd(TODAY)}`;
+renderDashboard();
+renderGantt(); // pre-render for toggle interactions
+</script>
+</body>
+</html>
